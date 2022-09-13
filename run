@@ -1,2 +1,5 @@
+#/bin/sh
+set -eu
+
 javac `find . -type f | grep \.java$`
 enso run

@@ -1,11 +1,14 @@
 polyglot java import experiments.Reflect
+polyglot java import experiments.Aff
+polyglot java import experiments.AffMonad
 polyglot java import experiments.FileAsync
 
 from Standard.Base import all
 
 main =
-	pwd = FileAsync.pwd
 	aContent = FileAsync.readFile "loremipsum.txt"
-	content = aContent.get
-	#desc = Reflect.describe content
-    IO.println content
+	comp = Aff.MonadInstance.bind aContent 
+		content -> 
+			Aff.MonadInstance.return_ 
+				IO.println content
+	Aff.runAff comp

@@ -20,22 +20,29 @@ public class FileAsync {
 		return System.getProperty("user.dir");
 	}
 
-	public static CompletableFuture<String> readFile(String location) {
+	public static App<Aff, String> readFile(String location) {
+		Path path = Paths.get(location);
+
+		CompletableFuture<String> result = FileAsync.readFileAsync(path, 1024, StandardCharsets.UTF_8);
+
+		return Aff.completionStage(result);
+	}
+
+	private static CompletableFuture<String> readFileAsync(String location) {
 		Path path = Paths.get(location);
 		int bufferSize = 1024;
 		Charset encoding = StandardCharsets.UTF_8;
 		
-		return readAllBytes(path, bufferSize)
+		return readAllBytesAsync(path, bufferSize)
 			   .thenApply(bytes -> new String(bytes, encoding));
     }
 
-	
-	public static CompletableFuture<String> readFile(Path path, int bufferSize, Charset encoding) {
-		return readAllBytes(path, bufferSize)
+	private static CompletableFuture<String> readFileAsync(Path path, int bufferSize, Charset encoding) {
+		return readAllBytesAsync(path, bufferSize)
 			   .thenApply(bytes -> new String(bytes, encoding));
     }
 	
-	public static CompletableFuture<byte[]> readAllBytes(Path path, int bufferSize) {
+	private static CompletableFuture<byte[]> readAllBytesAsync(Path path, int bufferSize) {
 		CompletableFuture<byte[]> result = new CompletableFuture<>();
 		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
@@ -43,7 +50,7 @@ public class FileAsync {
 		try {
 			AsynchronousFileChannel afc = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
 			
-			readFile(afc, 0, buffer, outStream, result);
+			readFileAsync(afc, 0, buffer, outStream, result);
 		} catch(IOException exc) {
 			result.completeExceptionally(exc);
 		}
@@ -51,7 +58,7 @@ public class FileAsync {
 		return result;
     }
 	
-	private static void readFile(AsynchronousFileChannel afc, Integer position, ByteBuffer buffer, ByteArrayOutputStream acc, CompletableFuture<byte[]> xs) {
+	private static void readFileAsync(AsynchronousFileChannel afc, Integer position, ByteBuffer buffer, ByteArrayOutputStream acc, CompletableFuture<byte[]> xs) {
 		afc.read(buffer, position, acc, new CompletionHandler<Integer, ByteArrayOutputStream>() {
 			@Override
 			public void completed(Integer numberOfBytesRead, ByteArrayOutputStream attachment) {
@@ -66,7 +73,7 @@ public class FileAsync {
 					attachment.writeBytes(arr);
 					
 					buffer.rewind();
-					readFile(afc, position + numberOfBytesRead, buffer, attachment, xs);
+					readFileAsync(afc, position + numberOfBytesRead, buffer, attachment, xs);
 				}
 			}
 
