@@ -20,22 +20,13 @@ public class FileAsync {
 		return System.getProperty("user.dir");
 	}
 
-	public static App<Aff, String> readFile(String location) {
+	public static App<Aff, String> readFile(String location, Charset charset) {
 		Path path = Paths.get(location);
 
 		CompletableFuture<String> result = FileAsync.readFileAsync(path, 1024, StandardCharsets.UTF_8);
 
 		return Aff.completionStage(result);
 	}
-
-	private static CompletableFuture<String> readFileAsync(String location) {
-		Path path = Paths.get(location);
-		int bufferSize = 1024;
-		Charset encoding = StandardCharsets.UTF_8;
-		
-		return readAllBytesAsync(path, bufferSize)
-			   .thenApply(bytes -> new String(bytes, encoding));
-    }
 
 	private static CompletableFuture<String> readFileAsync(Path path, int bufferSize, Charset encoding) {
 		return readAllBytesAsync(path, bufferSize)

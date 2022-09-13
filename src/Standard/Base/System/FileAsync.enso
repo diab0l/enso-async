@@ -1,0 +1,10 @@
+polyglot java import experiments.Aff as Java_Aff
+polyglot java import experiments.FileAsync as Java_FileAsync
+
+from Standard.Base import all
+
+from project.Standard.Base.Aff as Aff_Module import Aff, External
+
+read_text : Text -> Encoding -> (Aff Text) 
+read_text path (encoding=Encoding.utf_8) = 
+	External (Java_FileAsync.readFile path encoding.to_java_charset)

@@ -1,0 +1,16 @@
+polyglot java import experiments.Aff as Java_Aff
+
+type Aff a
+    External p
+	return x = 
+		ext = Java_Aff.MonadInstance.return_ x
+		External ext
+	bind aff f = case aff of
+		External p -> External 
+			binder x = 
+				affb = f x
+				case affb of
+					External p -> p
+			Java_Aff.MonadInstance.bind p binder
+	run aff = case aff of
+		External p -> Java_Aff.runAff p

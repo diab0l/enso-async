@@ -1,0 +1,45 @@
+## Asynchronous IO operations
+
+polyglot java import experiments.Aff as Java_Aff
+polyglot java import experiments.FileAsync as Java_FileAsync
+
+from Standard.Base import all
+
+from project.Standard.Base.Aff as Aff_Module import Aff, External
+
+## Prints the provided message to standard error.
+
+   Arguments:
+   - message: The message to print. It will have to_text called on it to
+     generate a textual representation that is then printed.
+
+   > Example
+     Print the message "Oh no!" to standard error.
+
+         AsyncIO.print_err "Oh no!"
+print_err : Any -> (Aff Nothing)
+print_err message = Aff.return (IO.print_err message)
+
+## Prints the provided message to standard output.
+
+   Arguments:
+   - message: The message to print. It will have to_text called on it to
+     generate a textual representation that is then printed.
+
+   > Example
+     Print the message "Oh yes!" to standard output.
+
+         IO.println "Oh yes!"
+println : Any -> (Aff Nothing)
+println message = Aff.return (IO.println message)
+
+## Reads a line from standard input.
+
+   > Example
+     Read a line from standard input.
+
+         IO.readln
+readln : Aff Text
+readln = Aff.return IO.readln
+
+

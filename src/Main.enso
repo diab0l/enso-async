@@ -1,28 +1,9 @@
 polyglot java import experiments.Aff as Java_Aff
 polyglot java import experiments.FileAsync as Java_FileAsync
 
-from Standard.Base import all
+from project.Standard.Base.Aff as Aff_Module import Aff, External
+from project.Standard.Base.IOAsync as IOAsync_Module import readFile, println
+from project.Standard.Base.System.FileAsync as FileAsync_Module import read_text
 
-type Aff a
-    External p
-	return x = 
-		ext = Java_Aff.MonadInstance.return_ x
-		External ext
-	bind aff f = case aff of
-		External p -> External 
-			binder x = 
-				affb = f x
-				case affb of
-					External p -> p
-			Java_Aff.MonadInstance.bind p binder
-	run aff = case aff of
-		External p -> Java_Aff.runAff p
+main = Aff.run (Aff.bind (read_text "loremipsum.txt") println)
 
-readFileAsync path = External (Java_FileAsync.readFile path)
-printlnAsync text = Aff.return (IO.println text)
-
-
-
-
-
-main = Aff.run (Aff.bind (readFileAsync "loremipsum.txt") printlnAsync)
