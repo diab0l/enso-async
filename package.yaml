@@ -2,7 +2,11 @@ name: enso-async
 namespace: local
 version: 0.0.1
 license: ''
-authors: []
-maintainers: []
+authors:
+  - name: Marian Stramm
+    email: m.stramm@speedcoding.de
+maintainers:
+  - name: Marian Stramm
+    email: m.stramm@speedcoding.de
 edition: 2022.1.1-nightly.2022-09-03
 prefer-local-libraries: true
