@@ -1,0 +1,8 @@
+name: Enso_async_prototype
+namespace: local
+version: 0.0.1
+license: ''
+authors: []
+maintainers: []
+edition: 2022.1.1-nightly.2022-09-03
+prefer-local-libraries: true

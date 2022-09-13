@@ -1,0 +1,11 @@
+polyglot java import experiments.Reflect
+polyglot java import experiments.FileAsync
+
+from Standard.Base import all
+
+main =
+	pwd = FileAsync.pwd
+	aContent = FileAsync.readFile "loremipsum.txt"
+	content = aContent.get
+	#desc = Reflect.describe content
+    IO.println content

@@ -1,0 +1,2 @@
+javac `find . -type f | grep \.java$`
+enso run
