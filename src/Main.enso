@@ -1,14 +1,28 @@
-polyglot java import experiments.Reflect
-polyglot java import experiments.Aff
-polyglot java import experiments.AffMonad
-polyglot java import experiments.FileAsync
+polyglot java import experiments.Aff as Java_Aff
+polyglot java import experiments.FileAsync as Java_FileAsync
 
 from Standard.Base import all
 
-main =
-	aContent = FileAsync.readFile "loremipsum.txt"
-	comp = Aff.MonadInstance.bind aContent 
-		content -> 
-			Aff.MonadInstance.return_ 
-				IO.println content
-	Aff.runAff comp
+type Aff a
+    External p
+	return x = 
+		ext = Java_Aff.MonadInstance.return_ x
+		External ext
+	bind aff f = case aff of
+		External p -> External 
+			binder x = 
+				affb = f x
+				case affb of
+					External p -> p
+			Java_Aff.MonadInstance.bind p binder
+	run aff = case aff of
+		External p -> Java_Aff.runAff p
+
+readFileAsync path = External (Java_FileAsync.readFile path)
+printlnAsync text = Aff.return (IO.println text)
+
+
+
+
+
+main = Aff.run (Aff.bind (readFileAsync "loremipsum.txt") printlnAsync)
