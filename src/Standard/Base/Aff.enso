@@ -1,16 +1,75 @@
+from Standard.Base import all
+
 polyglot java import experiments.Aff as Java_Aff
 
 type Aff a
-    External p
+	External o
+
+	## Monad return
+	return : a -> (Aff a)
 	return x = 
-		ext = Java_Aff.MonadInstance.return_ x
-		External ext
-	bind aff f = case aff of
-		External p -> External 
-			binder x = 
-				affb = f x
-				case affb of
-					External p -> p
-			Java_Aff.MonadInstance.bind p binder
-	run aff = case aff of
-		External p -> Java_Aff.runAff p
+		wrap a = External a
+
+		wrap (Java_Aff.MonadInstance.return_ x)
+
+	## Monad bind
+	bind : (Aff a) -> (a -> (Aff b)) -> (Aff b)
+	bind aff f =
+		wrap a = External a
+		unwrap x = case x of
+			External o -> o
+		wrap (Java_Aff.MonadInstance.bind (unwrap aff) (x -> unwrap (f x)))
+
+	## Applicative pure
+	pure : a -> (Aff a)
+	pure = Aff.return
+
+	## Applicative apply
+	apply : (Aff (a -> b)) -> (Aff a) -> (Aff b)
+	apply appF app = 
+		wrap a = External a
+		unwrap x = case x of
+			External o -> o
+		wrap (Java_Aff.MonadInstance.apply (unwrap appF) (unwrap app))
+
+	## Functor map
+	map : (Aff a) -> (a -> b) -> (Aff b)
+	map aff f =
+		wrap a = External a
+		unwrap x = case x of
+			External o -> o
+		wrap (Java_Aff.MonadInstance.map (unwrap aff) f)
+
+	## Wait for the result of the asynchronous effect, producing an effect and a result
+	run : (Aff a) -> a
+	run aff =
+		unwrap x = case x of
+			External o -> o
+		Java_Aff.runAff (unwrap aff)
+
+	## Combines many asynchronous effects into a single effect with many results.
+	whenAll : (Vector (Aff Any)) -> (Aff (Vector Any))
+	whenAll xs =
+		wrap a = External a
+		unwrap x = case x of
+			External o -> o
+		jAffs = xs.map unwrap
+		pArr = case jAffs of
+			Vector.Vector_Data storage -> storage
+		arr = case pArr of
+			Proxy_Polyglot_Array.Proxy_Polyglot_Array_Data x -> x
+		affArr = wrap (Java_Aff.whenAll arr)
+		Aff.map affArr Vector.from_polyglot_array
+
+	## Waits for the results of asynchronous effects, returning a result when any is done.
+	whenAny : (Vector (Aff Any)) -> (Aff Any)
+	whenAny xs =
+		wrap a = External a
+		unwrap x = case x of
+			External o -> o
+		jAffs = xs.map unwrap
+		pArr = case jAffs of
+			Vector.Vector_Data storage -> storage
+		arr = case pArr of
+			Proxy_Polyglot_Array.Proxy_Polyglot_Array_Data x -> x
+		wrap (Java_Aff.whenAny arr)

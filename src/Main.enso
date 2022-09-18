@@ -1,9 +1,10 @@
-polyglot java import experiments.Aff as Java_Aff
-polyglot java import experiments.FileAsync as Java_FileAsync
-
-from project.Standard.Base.Aff as Aff_Module import Aff, External
-from project.Standard.Base.IOAsync as IOAsync_Module import readFile, println
+from Standard.Base import all
+from project.Standard.Base.Aff as Aff_Module import Aff
+from project.Standard.Base.IOAsync as IOAsync_Module import println
 from project.Standard.Base.System.FileAsync as FileAsync_Module import read_text
 
-main = Aff.run (Aff.bind (read_text "loremipsum.txt") println)
+main = 
+	text = read_text "loremipsum.txt"
+	write = Aff.bind text println
+	Aff.run write
 
