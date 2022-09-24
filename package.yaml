@@ -8,5 +8,5 @@ authors:
 maintainers:
   - name: Marian Stramm
     email: m.stramm@speedcoding.de
-edition: 2022.1.1-nightly.2022-09-03
+edition: 2022.1.1-nightly.2022-09-15
 prefer-local-libraries: true

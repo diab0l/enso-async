@@ -11,12 +11,13 @@ public class Reflect {
 			return "null";
 		}
 
-		StringBuilder sb = new StringBuilder();
-		Class c = x.getClass();
+		var sb = new StringBuilder();
+		var c = x.getClass();
 		
-		String interfaces = describeInterfaces(c.getGenericInterfaces());
+		var baseClass = describeBaseClass(c.getGenericSuperclass());
+		var interfaces = describeInterfaces(c.getGenericInterfaces());
 		
-		sb.append(c.toGenericString() + interfaces + " { \n");
+		sb.append(c.toGenericString() + baseClass + interfaces + " { \n");
 		describeFields(sb, c.getDeclaredFields());
 		describeMethods(sb, c.getDeclaredMethods());
 		sb.append("}\n");
@@ -36,13 +37,24 @@ public class Reflect {
 		}
 	}
 	
+	private static String describeBaseClass(Type t) {
+		if(t == Object.class) {
+			return "";
+		}
+		
+		var sb = new StringBuilder(" extends ");
+		sb.append(t.getTypeName());
+		
+		return sb.toString();
+	}
+	
 	private static String describeInterfaces(Type[] xs) {
 		if(xs.length == 0) {
 			return "";
 		}
 		
-		StringBuilder sb = new StringBuilder(" implements ");
-		boolean fst = true;
+		var sb = new StringBuilder(" implements ");
+		var fst = true;
 		for (Type c: xs) {
 			if(!fst) {
 				sb.append(", ");

@@ -1,19 +1,19 @@
 package experiments;
 
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.ByteBuffer;
-import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.System;
 import java.nio.ByteBuffer;
+import java.nio.channels.*;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.Charset;
-import java.nio.file.*;
-import java.util.concurrent.*;
-import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
-import java.io.ByteArrayOutputStream;
-import java.lang.System;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Vector;
+import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 
 public class FileAsync {
 	public static String pwd() {
@@ -28,7 +28,7 @@ public class FileAsync {
 		return Aff.completionStage(result);
 	}
 
-	private static CompletableFuture<String> readFileAsync(Path path, int bufferSize, Charset encoding) {
+	public static CompletableFuture<String> readFileAsync(Path path, int bufferSize, Charset encoding) {
 		return readAllBytesAsync(path, bufferSize)
 			   .thenApply(bytes -> new String(bytes, encoding));
     }
