@@ -1,26 +1,17 @@
 from Standard.Base import all
-from project.Standard.Base.Aff import Aff
+from project.Standard.Base.Aff as AffModule import Aff, await, whenAny, whenAll
 
 polyglot java import experiments.FileAsync as Java_FileAsync
 polyglot java import java.nio.file.Path
 
 polyglot java import experiments.Reflect as Reflect
 
-
-main2 =
+main =
 	cs = Java_FileAsync.readFileAsync (Path.of "loremipsum.txt") 1024 Encoding.utf_8.to_java_charset
 	read = Aff.from_CompletionStage cs
-	write = Aff.bind read
-		x -> Aff.return 
+	print x = 
+		Aff.return 
 			IO.println x
 			x
-	IO.println (Aff.whenAll [ write ])
-
-main3 = 
-	xs = [ "", 1, 2.4 ]
-	ys = [ "a", "b", "c" ]
-	IO.println (Reflect.describe xs)
-	IO.println (Reflect.describe ys)
-
-
-main = main2
+	write = read.bind print
+	whenAll [ write ]

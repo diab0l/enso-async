@@ -3,6 +3,41 @@ from Standard.Base import all
 polyglot java import java.util.concurrent.CompletionStage as Java_CompletionStage
 polyglot java import java.util.concurrent.CompletableFuture
 
+## Wait for the result of the asynchronous effect, producing an effect and a result
+await : Aff -> Any ! Any
+await aff =
+	case aff of
+		Completed       x   -> x
+		Failed          err -> Error.throw err
+		CompletionStage cs  -> (cs.toCompletableFuture).get
+
+## Waits for the results of asynchronous effects, returning a result when any is done.
+whenAny : (Vector (Aff Any)) -> (Aff Any)
+whenAny xs =
+	extract_cs x = case x of 
+		CompletionStage cs -> [cs]
+		_ -> []
+	css = xs.flat_map extract_cs
+	java_array = css.to_array
+	is_done x = case x of
+		Completed _ -> True
+		Failed    _ -> True
+		_           -> False
+	done = xs.find is_done
+	if done.is_nothing.not then done else
+		Aff.from_CompletionStage (CompletableFuture.anyOf java_array)
+
+## Combines many asynchronous effects into a single effect with many results.
+whenAll : (Vector (Aff Any)) -> (Aff (Vector Any))
+whenAll xs =
+	extract_cs x = case x of 
+		CompletionStage cs -> [cs]
+		_ -> []
+	css = xs.flat_map extract_cs
+	java_array = css.to_array
+	done = Aff.from_CompletionStage (CompletableFuture.allOf java_array)
+	done.bind (_ -> Aff.return (xs.map await))
+
 type Aff
 	## Private
 	Completed x
@@ -13,17 +48,17 @@ type Aff
 	## Private
 	CompletionStage x
 	
-	## Import from Java native completionStage type
+	## Import from Java's CompletionStage type
 	from_CompletionStage : Java_CompletionStage -> Aff
 	from_CompletionStage x = 
 		unwrap = Panic.catch Any (Aff.return x.get) (caught_panic -> Failed caught_panic)
 		native = CompletionStage x
 		if x.isDone then unwrap else native
 	
-	## Export to Java native completionStage type
-	to_CompletionStage : Aff -> Java_CompletionStage
-	to_CompletionStage aff = 
-		case aff of
+	## Export to Java's CompletionStage type
+	to_CompletionStage : Java_CompletionStage
+	to_CompletionStage self = 
+		case self of
 			Failed          err -> CompletableFuture.completedStage err
 			Completed       x   -> CompletableFuture.completedStage x
 			CompletionStage x   -> x
@@ -31,60 +66,25 @@ type Aff
 	## Monad return
 	return : Any -> Aff
 	return x = if x.is_error then (Failed x) else (Completed x)
-	
-	## Monad bind
-	bind : Aff -> (Any -> Aff) -> Aff
-	bind aff f = 
-		case aff of
-			Failed          err -> Failed err
-			Completed       x   -> f x
-			CompletionStage cs  -> cs.thenCompose (x -> self.to_CompletionStage (f x))
-	
+
 	## Applicative pure
 	pure : Any -> Aff
 	pure = Aff.return
 
+	## Monad bind
+	bind : Aff -> (Any -> Aff) -> Aff
+	bind self f = 
+		case self of
+			Failed          err -> Failed err
+			Completed       x   -> f x
+			CompletionStage cs  -> cs.thenCompose (x -> self.to_CompletionStage (f x))
+	
 	## Applicative apply
 	apply : Aff -> Aff -> Aff
 	apply appF app = 
-		Aff.bind appF (f -> Aff.bind app (x -> Aff.return (f x)))
+		appF.bind (f -> app.bind (x -> Aff.return (f x)))
 	
 	## Functor map
 	map : Aff -> (Any -> Any) -> Aff
 	map aff f =
-		Aff.bind aff (x -> Aff.return (f x))
-	
-	## Wait for the result of the asynchronous effect, producing an effect and a result
-	run : Aff -> Any ! Any
-	run aff =
-		case aff of
-			Completed       x   -> x
-			Failed          err -> Error.throw err
-			CompletionStage cs  -> (cs.toCompletableFuture).get
-	
-	## Waits for the results of asynchronous effects, returning a result when any is done.
-	whenAny : (Vector (Aff Any)) -> (Aff Any)
-	whenAny xs =
-		extract_cs x = case x of 
-			CompletionStage cs -> [cs]
-			_ -> []
-		css = xs.flat_map extract_cs
-		java_array = css.to_array
-		is_done x = case x of
-			Completed _ -> True
-			Failed    _ -> True
-			_           -> False
-		done = xs.find is_done
-		if done.is_nothing.not then done else
-			Aff.from_CompletionStage (CompletableFuture.anyOf java_array)
-	
-	## Combines many asynchronous effects into a single effect with many results.
-	whenAll : (Vector (Aff Any)) -> (Aff (Vector Any))
-	whenAll xs =
-		extract_cs x = case x of 
-			CompletionStage cs -> [cs]
-			_ -> []
-		css = xs.flat_map extract_cs
-		java_array = css.to_array
-		done = Aff.from_CompletionStage (CompletableFuture.allOf java_array)
-		Aff.bind done (_ -> Aff.return (xs.map Aff.run))
+		aff.bind (x -> Aff.return (f x))
